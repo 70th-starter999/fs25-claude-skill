@@ -1,7 +1,6 @@
 # FS25 Patterns Overview
 
-This document gives a high-level overview of all patterns bundled in the skill.
-For full details, read the individual files in `skill/fs25-modding-skill/references/`.
+High-level overview of all patterns bundled in the skill. For full details, read the individual files in `skill/fs25-modding-skill/references/`.
 
 ---
 
@@ -21,7 +20,7 @@ Every FS25 mod needs a valid `modDesc.xml`. Key elements:
 FS25 uses **Luau** (Lua 5.1 compatible). Key patterns:
 - `Class(MyClass, BaseClass)` — class inheritance
 - `Utils.overwrittenFunction()` — replace Giants methods
-- `Utils.appendedFunction()` — add to Giants methods after
+- `Utils.appendedFunction()` — add to Giants methods after (**always uninstall on mod unload!**)
 - `Utils.prependedFunction()` — add to Giants methods before
 - `Mod:init()` — optional mod initialization wrapper
 
@@ -52,13 +51,14 @@ The most complex and pitfall-heavy area. Key rules:
 3. `loadGui()` called in `loadMap()` or `onStartMission()`
 4. `showDialog()` with callback pattern
 5. `FocusManager` required for controller support
+6. **Do NOT use `onClose`/`onOpen` as callback names** — they conflict with GUI lifecycle methods
 
 → Full doc: `references/patterns/gui-dialogs.md`
 
 ### Network Events (Multiplayer) ⭐
 For any value that must sync between players:
 1. Create event class extending `Event`
-2. Implement `readStream()` and `writeStream()`
+2. Implement `readStream()` and `writeStream()` in the **same order**
 3. Always check `g_server ~= nil` before server-only operations
 4. Register with `addModEventListener()`
 
@@ -86,7 +86,18 @@ Three hook types via `Utils`:
 - `Utils.appendedFunction(Class, "methodName", newFn)` — add after
 - `Utils.prependedFunction(Class, "methodName", newFn)` — add before
 
+**Critical:** Store original function references and restore them in `delete()`. Failing to do so causes hooks to stack on every savegame reload.
+
 → Full doc: `references/patterns/extensions.md`
+
+### Field & Player Position Detection ⭐
+Reliably detect which field the player is standing in:
+- 4-tier player position fallback: `g_localPlayer` → `player.rootNode` → `controlledVehicle` → `camera`
+- 3-tier field detection: `g_fieldManager:getFieldAtWorldPosition()` → farmland lookup → manual iteration
+- Always wrap `getWorldTranslation()` in `pcall()` — node may be invalid
+- **Warning:** `g_fieldManager.fields` is empty at startup — use delayed retry
+
+→ Full doc: `references/patterns/field-detection.md`
 
 ### Data Classes
 OOP data containers with business logic:
@@ -98,7 +109,7 @@ OOP data containers with business logic:
 
 ### Financial Calculations
 - Loan interest: compound or simple
-- Depreciation: straight-line or declining balance  
+- Depreciation: straight-line or declining balance
 - Use `math.floor()` for money (no floating point rounding)
 - Never use `os.time()` for timestamps — use game day numbers
 
@@ -181,6 +192,7 @@ Custom overlay HUD elements:
 - Extend `HUDDisplayElement`
 - Use `createOverlay()`, `setOverlayColor()`, `renderOverlay()`
 - Coordinate system: bottom-left origin, normalized units
+- **mouseEvent handlers must return `true` when consuming clicks** — or they fall through to the game world
 
 → Full doc: `references/advanced/hud-framework.md`
 
@@ -220,11 +232,16 @@ Custom equipment configs (wheel types, engine variants, etc.):
 
 ## Pitfalls Reference
 
-See `references/pitfalls/what-doesnt-work.md` for the complete list of 17+ documented pitfalls. The most critical ones:
+See `references/pitfalls/what-doesnt-work.md` for all **20 documented pitfalls**. The most critical:
 
-1. **`os.time()` doesn't exist** — use `g_currentMission.time`
-2. **`DialogElement` as base class crashes** — use `MessageDialog`
-3. **`g_gui:showYesNoDialog()` doesn't exist** — use `YesNoDialog.show()`
-4. **`Slider` widgets fire unreliable events** — use `MultiTextOptionElement`
-5. **`goto` / `::labels::` are Lua 5.4** — not available in FS25
-6. **Running server code on client** — always check `g_server ~= nil`
+| # | Pitfall | Use instead |
+|---|---------|-------------|
+| 1 | `os.time()` / `os.date()` | `g_currentMission.time` / `.environment.currentDay` |
+| 2 | `goto` / `::labels::` | `if/else`, early `return` |
+| 3 | `Slider` widget | `MultiTextOptionElement` |
+| 4 | `DialogElement` as base | `MessageDialog` |
+| 5 | `g_gui:showYesNoDialog()` | `YesNoDialog.show()` |
+| 6 | Direct `farmland.ownerFarmId` | `g_farmlandManager:getFarmlandOwner(id)` |
+| 18 | `onClose`/`onOpen` callback names | Custom names like `onClickClose` |
+| 19 | `mouseEvent` without return value | Return `true` when consuming, pass through otherwise |
+| 20 | Hooks without cleanup in `delete()` | Store originals, restore in `delete()` — or use HookManager |

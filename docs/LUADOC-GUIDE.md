@@ -1,21 +1,21 @@
 # Using the Community LUADOC with This Skill
 
-The [FS25 Community LUADOC](https://github.com/umbraprior/FS25-Community-LUADOC) by [@umbraprior](https://github.com/umbraprior) is the most complete API reference for FS25. This skill includes an index so Claude knows exactly where to point you.
+The [FS25 Community LUADOC](https://github.com/umbraprior/FS25-Community-LUADOC) by [@umbraprior](https://github.com/umbraprior) is the most complete API reference for FS25. This skill gives Claude direct access to it.
 
 ---
 
-## How It Works
+## How It Works (v1.1.0+)
 
-This skill does **not** embed all 1,661 LUADOC pages (that would be too large). Instead, it contains:
+The skill includes a **complete categorized index** of all 1,661 LUADOC pages. When you ask Claude about a specific API, it:
 
-1. A **complete categorized index** of all LUADOC pages
-2. **Quick lookup entries** for the most commonly used classes
-3. **Direct path references** so Claude can say "check `docs/script/GUI/Gui.md`"
+1. Finds the correct path in `references/luadoc-index/LUADOC-INDEX.md`
+2. Constructs the full raw GitHub URL
+3. Uses **WebFetch** to retrieve the live documentation — no local install needed
 
-When you ask Claude about an FS25 function, it will:
-- Recall the correct class and function names from the index
-- Tell you the exact LUADOC path to verify the signature
-- Write code using the correct parameters
+**Example:** If you ask about `g_gui:loadGui()`, Claude fetches:  
+`https://raw.githubusercontent.com/umbraprior/FS25-Community-LUADOC/main/docs/script/GUI/Gui.md`
+
+This means you always get up-to-date docs, and it works for any user anywhere.
 
 ---
 
@@ -90,12 +90,13 @@ docs/
 | Vehicle specializations | `docs/script/Specializations/` |
 | HUD elements | `docs/script/Hud/` |
 | Trigger zones | `docs/script/Triggers/` |
+| Field / farmland system | `docs/script/Field/FieldManager.md` |
 
 ---
 
 ## Tips
 
 - **Function not found?** Search the LUADOC website — it's full-text searchable
-- **Confused about parameters?** The LUADOC shows the actual source code for each function
-- **Finding a category?** Ask Claude "Where in the LUADOC do I find X?" — it will look up the index
+- **Confused about parameters?** Ask Claude — it will WebFetch the exact signature for you
+- **Giants source?** Ask Claude to check the lua-scripting source too — sometimes the implementation reveals things the docs don't
 - **Offline?** Clone the repo and run locally — it's a static Docusaurus site
