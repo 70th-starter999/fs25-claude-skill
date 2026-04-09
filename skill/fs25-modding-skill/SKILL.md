@@ -1,5 +1,5 @@
----
-name: fs25-modding
+﻿---
+name: fs25-modding-skill
 description: >
   Expert Farming Simulator 25 (FS25) mod development assistant. Use this skill for ANY task involving
   FS25 mod creation, Lua scripting, modDesc.xml, GUI dialogs, vehicle specializations, placeables,
@@ -32,6 +32,11 @@ authoritative knowledge bases — use them together.
 │  "Advanced: vehicles/animations?"   →   references/advanced/        │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+**Source Attribution:**
+- `references/patterns/`, `references/basics/`, `references/advanced/`, `references/pitfalls/` — [@XelaNull](https://github.com/XelaNull) (FS25_UsedPlus)
+- `references/luadoc-index/` — [@umbraprior](https://github.com/umbraprior) (FS25-Community-LUADOC) — use **WebFetch** for deep lookups
+- `references/lua-source-index/` — [@Dukefarming](https://github.com/Dukefarming) (FS25-lua-scripting) — use **WebFetch** for deep lookups
 
 **Always read the relevant reference file before answering.** Don't rely on memory — the reference
 files contain validated, battle-tested patterns.
@@ -104,6 +109,7 @@ MessageType.VEHICLE_RESET    -- Vehicle reset
 - **Vehicles / specializations** → read `references/advanced/vehicles.md`
 - **Animations** → read `references/advanced/animations.md`
 - **HUD** → read `references/advanced/hud-framework.md`
+- **Field / player position detection** → read `references/patterns/field-detection.md`
 - **Placeables** → read `references/advanced/placeables.md`
 - **Animals** → read `references/advanced/animals.md`
 - **Production** → read `references/advanced/production-patterns.md`
@@ -116,13 +122,15 @@ MessageType.VEHICLE_RESET    -- Vehicle reset
 
 ### 2. Check function signatures
 If the question involves a specific class/function:
-→ Read `references/luadoc-index/LUADOC-INDEX.md` to find the right LUADOC path
-→ Then check the actual LUADOC doc file in your context if available
+→ Read `references/luadoc-index/LUADOC-INDEX.md` to find the path
+→ Construct the full URL: `https://raw.githubusercontent.com/umbraprior/FS25-Community-LUADOC/main/` + path
+→ Use **WebFetch** on that URL to retrieve the full API documentation
 
 ### 3. Check Giants implementation
 If the question is about how the game itself does something:
-→ Read `references/lua-source-index/LUA-SOURCE-INDEX.md` to find the right source file
-→ Reference the implementation pattern from there
+→ Read `references/lua-source-index/LUA-SOURCE-INDEX.md` to find the file path
+→ Construct the full URL: `https://raw.githubusercontent.com/Dukefarming/FS25-lua-scripting/main/` + path
+→ Use **WebFetch** on that URL to retrieve the actual Giants source code
 
 ### 4. Always warn about pitfalls
 Before finalizing any code, check `references/pitfalls/what-doesnt-work.md` for relevant traps.
@@ -220,7 +228,8 @@ Read these files for detailed patterns:
 | `references/patterns/events.md` | Multiplayer network events ⭐ |
 | `references/patterns/save-load.md` | Savegame persistence ⭐ |
 | `references/patterns/managers.md` | Singleton managers |
-| `references/patterns/extensions.md` | Hooking existing classes |
+| `references/patterns/extensions.md` | Hooking existing classes + HookManager cleanup pattern |
+| `references/patterns/field-detection.md` | Field & player position detection ⭐ |
 | `references/patterns/data-classes.md` | Data classes with business logic |
 | `references/patterns/financial-calculations.md` | Loans, depreciation |
 | `references/patterns/async-operations.md` | Deferred/queued operations |

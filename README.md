@@ -82,8 +82,9 @@ Provided by [@Dukefarming](https://github.com/Dukefarming). The actual Giants so
 - Found in: `skill/fs25-modding-skill/references/lua-source-index/`
 
 ### 3. FS25 AI Coding Reference (Patterns)
-Provided by the **UsedPlus Team**. Battle-tested patterns from 164+ analyzed mods.
-- Found in: `skill/fs25-modding-skill/references/patterns/`
+Provided by [@XelaNull](https://github.com/XelaNull) (FS25_UsedPlus). Battle-tested patterns validated against an 83-file production mod with 30+ custom dialogs.
+- Source: [XelaNull/FS25_UsedPlus/FS25_AI_Coding_Reference](https://github.com/XelaNull/FS25_UsedPlus/tree/master/FS25_AI_Coding_Reference)
+- Found in: `skill/fs25-modding-skill/references/patterns/`, `references/basics/`, `references/advanced/`, `references/pitfalls/`
 
 ---
 

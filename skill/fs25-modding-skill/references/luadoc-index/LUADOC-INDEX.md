@@ -3,8 +3,14 @@
 **Source:** [FS25-Community-LUADOC](https://github.com/umbraprior/FS25-Community-LUADOC) by @umbraprior  
 **Coverage:** 1,661 pages · 11,102+ script functions · Engine, Foundation, Script APIs
 
-> Use this index to find the right LUADOC page, then read it from `docs/` in the LUADOC repo.
-> When Claude is asked about a specific function or class, look it up here and reference the docs path.
+**Base URL:** `https://raw.githubusercontent.com/umbraprior/FS25-Community-LUADOC/main/`
+
+> **How to use:** Find the path in the tables below, then use **WebFetch** to retrieve the full doc.
+> Construct the URL as: `BASE_URL + path`
+>
+> **Example:**
+> Path `docs/script/GUI/Gui.md` →
+> WebFetch `https://raw.githubusercontent.com/umbraprior/FS25-Community-LUADOC/main/docs/script/GUI/Gui.md`
 
 ---
 

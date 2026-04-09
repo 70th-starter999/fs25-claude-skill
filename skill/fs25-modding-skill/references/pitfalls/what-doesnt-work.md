@@ -521,6 +521,9 @@ end
 | `fs25_buttonText` profile | `text` attribute on Button | Profile doesn't exist |
 | `g_farmlandManager.farmlands` | `g_farmlandManager:getFarmlands()` | Direct property access fails |
 | `farmland.ownerFarmId` | `g_farmlandManager:getFarmlandOwner(id)` | Property doesn't exist |
+| `onClose`/`onOpen` as callback names | Custom names like `onClickClose` | Conflicts with GUI lifecycle |
+| `mouseEvent` without return | Return `true` if consumed, pass `eventUsed` otherwise | Clicks fall through to game |
+| Hooks without cleanup in `delete()` | Store originals, restore in `delete()` or use HookManager | Stacks on savegame reload |
 
 ---
 
@@ -598,3 +601,152 @@ local areaText = string.format("%.2f %s", g_i18n:getArea(areaHa), g_i18n:getArea
 ```
 
 **Pattern source:** FS25_FarmlandOverview
+
+---
+
+## Hook & Lifecycle Issues
+
+### 18. Dialog Callback Names Conflicting with System Lifecycle
+
+> ✅ **Validated:** `FS25_SoilFertilizer/src/SoilSettingsGUI.lua` — Fixed in v1.5.1.0 (issue #130)
+
+**Problem:** Using `onClose` or `onOpen` as XML attribute callback names on dialog elements. These names are reserved by the FS25 GUI system's own lifecycle and will fire at unexpected times or not at all.
+
+**Symptoms:**
+- `onClose` callback fires when you don't expect it
+- Dialog doesn't close properly after player interaction
+- Callbacks trigger during GUI system init, not on actual user action
+
+**Solution:** Use custom callback names that don't collide with the system.
+
+```xml
+<!-- WRONG: Reserved lifecycle names -->
+<GuiElement profile="myDialog" onClose="onDialogClose" onOpen="onDialogOpen"/>
+
+<!-- CORRECT: Use unique custom names -->
+<GuiElement profile="myDialog" onClickClose="onDialogClose" onClickOpen="onDialogOpen"/>
+```
+
+```lua
+-- In your dialog Lua class, register the custom-named callbacks:
+function MyDialog:onClickClose()
+    self:close()
+end
+```
+
+**Rule:** Never use `onClose`, `onOpen`, `onDelete`, or other names that match `GuiElement` lifecycle methods as your own callback names.
+
+---
+
+### 19. HUD mouseEvent — Not Setting eventUsed = true
+
+> ✅ **Validated:** `FS25_SoilFertilizer/src/SoilHUD.lua` — Fixed in v1.5.1.0 (issue #130)
+
+**Problem:** A HUD element intercepts mouse clicks (e.g., to close a panel) but doesn't set `eventUsed = true`. The event then propagates to the game world, causing unwanted interactions — the mouse cursor appears, or the click registers in the game environment.
+
+**Symptoms:**
+- Clicking your HUD button also triggers game world interaction
+- Game cursor appears unexpectedly when hovering over HUD
+- Mouse click "falls through" your panel to elements behind it
+
+**Solution:** Set `eventUsed = true` when your HUD element consumes the event.
+
+```lua
+-- WRONG: Handles click but lets event propagate
+function MyHUD:mouseEvent(posX, posY, isDown, isUp, button, eventUsed)
+    if self.isVisible and self:isMouseOver(posX, posY) then
+        if isDown then
+            self:handleClick()
+        end
+        -- eventUsed not set — click propagates to game world!
+    end
+end
+
+-- CORRECT: Mark event as consumed
+function MyHUD:mouseEvent(posX, posY, isDown, isUp, button, eventUsed)
+    if eventUsed then return eventUsed end  -- Already handled upstream
+
+    if self.isVisible and self:isMouseOver(posX, posY) then
+        if isDown then
+            self:handleClick()
+        end
+        return true  -- Consumed — don't propagate
+    end
+
+    return eventUsed
+end
+```
+
+**Pattern:** The return value of `mouseEvent` IS `eventUsed` for the next handler in the chain. Always pass it through if you didn't consume it; return `true` if you did.
+
+---
+
+### 20. Hook Accumulation on Savegame Reload
+
+> ✅ **Validated:** `FS25_SoilFertilizer/src/HookManager.lua` — Production pattern since v1.0
+
+**Problem:** `Utils.appendedFunction` / `Utils.prependedFunction` **add** to the function chain — they don't replace it. If your mod hooks a function at `Mission00.load` time but doesn't remove hooks at `Mission00.delete` time, each savegame reload stacks another copy of your hook. The function runs twice after the first reload, three times after the second, etc.
+
+**Symptoms:**
+- Logic runs multiple times per event (e.g., harvest depletes nutrients 2x, 3x)
+- Memory leaks — old callbacks keep old module instances alive
+- Behavior gets progressively worse the longer a session runs
+
+**Solution:** Store the original function reference and restore it on delete, OR use a HookManager that tracks and reverts all hooks.
+
+```lua
+-- WRONG: Hooks install on load but never uninstall
+function MyMod:loadMap()
+    FruitUtil.updateFruitGrowthState = Utils.appendedFunction(
+        FruitUtil.updateFruitGrowthState,
+        function(...)
+            self:onHarvest(...)
+        end
+    )
+end
+-- No delete/cleanup — hooks stack on next load!
+
+-- CORRECT: Store original and restore on unload
+function MyMod:loadMap()
+    self._originalHarvest = FruitUtil.updateFruitGrowthState
+    FruitUtil.updateFruitGrowthState = Utils.appendedFunction(
+        FruitUtil.updateFruitGrowthState,
+        function(...)
+            self:onHarvest(...)
+        end
+    )
+end
+
+function MyMod:delete()
+    if self._originalHarvest then
+        FruitUtil.updateFruitGrowthState = self._originalHarvest
+        self._originalHarvest = nil
+    end
+end
+
+-- BEST: Use a HookManager table to track all hooks
+local HookManager = {}
+HookManager.hooks = {}  -- { {target, method, original}, ... }
+
+function HookManager:install(target, methodName, hookFn, prepend)
+    local original = target[methodName]
+    if prepend then
+        target[methodName] = Utils.prependedFunction(original, hookFn)
+    else
+        target[methodName] = Utils.appendedFunction(original, hookFn)
+    end
+    table.insert(self.hooks, { target = target, method = methodName, original = original })
+end
+
+function HookManager:uninstallAll()
+    for _, hook in ipairs(self.hooks) do
+        hook.target[hook.method] = hook.original
+    end
+    self.hooks = {}
+end
+
+-- Usage:
+-- On load:   HookManager:install(FruitUtil, "updateFruitGrowthState", myFn)
+-- On delete: HookManager:uninstallAll()
+```
+

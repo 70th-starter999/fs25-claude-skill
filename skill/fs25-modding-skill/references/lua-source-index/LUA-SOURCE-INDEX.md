@@ -4,8 +4,16 @@
 **Coverage:** 267 Lua files — extracted from Giants' dataS folder  
 **Status:** Archived April 2025 — definitive Giants implementation reference
 
-> Use this when you need to understand *how Giants implements* something internally.
-> This is not the API docs — it's the actual game source code.
+**Base URL:** `https://raw.githubusercontent.com/Dukefarming/FS25-lua-scripting/main/`
+
+> **How to use:** Find the file path in the tables below, then use **WebFetch** to retrieve the source.
+> Construct the URL as: `BASE_URL + path`
+>
+> **Examples:**
+> `Vehicle.lua` → WebFetch `https://raw.githubusercontent.com/Dukefarming/FS25-lua-scripting/main/Vehicle.lua`
+> `base/TabbedMenu.lua` → WebFetch `https://raw.githubusercontent.com/Dukefarming/FS25-lua-scripting/main/base/TabbedMenu.lua`
+>
+> This is not the API docs — it's the actual game source code. Use it to understand *how Giants implements* something internally.
 
 ---
 
